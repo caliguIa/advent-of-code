@@ -1,4 +1,4 @@
-use std::num::TryFromIntError;
+use std::{num::TryFromIntError, u32};
 
 advent_of_code::solution!(1);
 
@@ -7,9 +7,7 @@ struct Lists {
     right: Vec<u32>,
 }
 
-pub fn part_one(input: &str) -> Option<u32> {
-    let mut res: u32 = 0;
-
+fn generate_sorted_id_lists(input: &str) -> Lists {
     let mut lists = Lists {
         left: Vec::new(),
         right: Vec::new(),
@@ -34,6 +32,14 @@ pub fn part_one(input: &str) -> Option<u32> {
     lists.left.sort();
     lists.right.sort();
 
+    lists
+}
+
+pub fn part_one(input: &str) -> Option<u32> {
+    let lists = generate_sorted_id_lists(input);
+
+    let mut res: u32 = 0;
+
     // for each lists ids convert to i32 then calculate diff
     for (index, id) in lists.left.iter().enumerate() {
         let diff = match (i32::try_from(*id), i32::try_from(lists.right[index])) {
@@ -51,11 +57,29 @@ pub fn part_one(input: &str) -> Option<u32> {
         res = res + abs_diff.unwrap();
     }
 
-    return Some(res);
+    Some(res)
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    let lists = generate_sorted_id_lists(input);
+
+    let mut repetitions: Vec<u32> = Vec::new();
+
+    for left_id in lists.left {
+        // get the number of times an id from the left list appears in the right
+        let occurances: u32 = lists
+            .right
+            .iter()
+            .filter(|right_id| *right_id == &left_id)
+            .collect::<Vec<&u32>>()
+            .len()
+            .try_into()
+            .unwrap();
+
+        repetitions.push(occurances * left_id);
+    }
+
+    Some(repetitions.iter().sum())
 }
 
 #[cfg(test)]
